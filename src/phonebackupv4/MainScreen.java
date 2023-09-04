@@ -5,6 +5,16 @@
  */
 package phonebackupv4;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.LinkedList;
+import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 /**
  *
  * @author Ethan
@@ -16,6 +26,7 @@ public class MainScreen extends javax.swing.JFrame {
      */
     public MainScreen() {
         initComponents();
+        //outputTextArea.setVisible(false);
     }
 
     /**
@@ -29,16 +40,29 @@ public class MainScreen extends javax.swing.JFrame {
 
         backupCallsButton = new javax.swing.JButton();
         backupTextsButton = new javax.swing.JButton();
-        jFileChooser1 = new javax.swing.JFileChooser();
         jLabel1 = new javax.swing.JLabel();
+        outputTextArea = new java.awt.TextArea();
+        filePathTextField = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         backupCallsButton.setText("Backup Calls");
+        backupCallsButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                backupCallsButtonActionPerformed(evt);
+            }
+        });
 
         backupTextsButton.setText("Backup Texts");
 
-        jLabel1.setText("Select a File and Click \"Backup Calls\" or \"Backup Texts\"");
+        jLabel1.setText("Enter the File Path and Click \"Backup Calls\" or \"Backup Texts\"");
+
+        filePathTextField.setText("File Path (examples of valid file paths: \"C:/Users/username/downloads/calls.log\" or \"C:\\Users\\username\\downloads\\texts.txt\")");
+        filePathTextField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                filePathTextFieldActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -46,14 +70,15 @@ public class MainScreen extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(outputTextArea, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                         .addComponent(backupCallsButton)
                         .addGap(18, 18, 18)
                         .addComponent(backupTextsButton))
-                    .addComponent(jFileChooser1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel1))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(filePathTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 722, Short.MAX_VALUE))
+                .addContainerGap(127, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -61,16 +86,86 @@ public class MainScreen extends javax.swing.JFrame {
                 .addGap(92, 92, 92)
                 .addComponent(jLabel1)
                 .addGap(18, 18, 18)
-                .addComponent(jFileChooser1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(filePathTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(backupCallsButton)
                     .addComponent(backupTextsButton))
-                .addContainerGap(17, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(outputTextArea, javax.swing.GroupLayout.PREFERRED_SIZE, 245, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(270, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void backupCallsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backupCallsButtonActionPerformed
+        String path
+                = fixFilePath(filePathTextField.getText());
+        File file
+                = new File(path);
+        if (!file.exists()) {
+            outputTextArea.setText("File does not exist");
+            outputTextArea.setVisible(true);
+        } else {
+            Scanner myReader
+                    = null;
+            try {
+                myReader
+                        = new Scanner(file);
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(MainScreen.class.getName()).
+                        log(Level.SEVERE,
+                                null,
+                                ex);
+            }
+            while (myReader.hasNextLine()) {
+                String data
+                        = myReader.nextLine();
+                LinkedList phoneCalls = getPhoneCalls(data);
+            }
+
+            myReader.close();
+        }
+    }//GEN-LAST:event_backupCallsButtonActionPerformed
+
+    private LinkedList<PhoneCall> getPhoneCalls(String callLog) {
+        JSONObject obj
+                = new JSONObject(callLog);
+        JSONArray arr
+                = obj.getJSONArray("listCallLogs");
+        int n
+                = arr.length();
+        LinkedList<PhoneCall> phoneCalls = new LinkedList<PhoneCall>();
+        String textForOutput = "";
+        for (int i
+                = 0;
+                i < n;
+                ++i) {
+            final JSONObject d
+                    = arr.getJSONObject(i);
+            String name = "";
+            if (d.has("name")) { // some phone calls don't have a name
+                name = d.getString("name");
+            }
+            PhoneCall phoneCall = new PhoneCall(name, d.getString("number"), d.getLong("date"), d.getInt("duration"));
+            phoneCalls.add(phoneCall);
+            textForOutput += "Name: " + name + ", phone number: " + d.getString("number") + ", date: " + d.getLong("date") + ", duration: " + d.getInt("duration") + "\n\n";
+        }
+        outputTextArea.append(textForOutput);
+        return phoneCalls;
+    }
+
+    private void filePathTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_filePathTextFieldActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_filePathTextFieldActionPerformed
+
+    public static String fixFilePath(String filePath) {
+        filePath
+                = filePath.replaceAll("\"",
+                        "");
+        return filePath;
+    }
 
     /**
      * @param args the command line arguments
@@ -115,7 +210,9 @@ public class MainScreen extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new MainScreen().setVisible(true);
+                MainScreen main
+                        = new MainScreen();
+                main.setVisible(true);
             }
         });
     }
@@ -123,7 +220,8 @@ public class MainScreen extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton backupCallsButton;
     private javax.swing.JButton backupTextsButton;
-    private javax.swing.JFileChooser jFileChooser1;
+    private javax.swing.JTextField filePathTextField;
     private javax.swing.JLabel jLabel1;
+    private java.awt.TextArea outputTextArea;
     // End of variables declaration//GEN-END:variables
 }
