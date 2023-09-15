@@ -7,6 +7,7 @@ package phonebackupv4;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.Scanner;
 import java.util.logging.Level;
@@ -208,6 +209,15 @@ public class MainScreen extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
+        
+        try {
+            Database database = new Database(); 
+        } catch (SQLException sqle) {
+            System.out.println("Error connecting to database!");
+        }
+        System.out.println("exiting...");
+        System.exit(1);
+        
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 MainScreen main
