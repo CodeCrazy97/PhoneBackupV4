@@ -13,37 +13,27 @@ public class Database {
     private Connection connection;
     private String basePath;
     private String dbName
-            = "phone_backup_v2";
+            = "phone_backup_v4.db";
 
     public Database() throws SQLException {
         this.basePath
                 = new File("").getAbsolutePath();
-
-        String url
-                = "jdbc:sqlite:" + basePath.replace("\\",
-                        "/") + "/" + this.dbName;
-
-        try (Connection conn
-                = DriverManager.getConnection(url)) {
-            if (conn != null) {
-                this.connection = conn;
-                DatabaseMetaData meta
-                        = conn.getMetaData();
-                System.out.println("The driver name is " + meta.getDriverName());
-                System.out.println("A new database has been created.");
-            }
-
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        }
+        this.connection
+                = this.connect();
     }
 
     private Connection connect() {
-        // SQLite connection string
+        try {
+            if (this.connection != null && !this.connection.isClosed()) {
+                return this.connection;
+            }
+        } catch (SQLException sqle) {
+            System.out.println("Trouble checking isClosed");
+        }
 
         String url
                 = "jdbc:sqlite:" + basePath.replace("\\",
-                        "/") + "/funny.db";
+                        "/") + "/" + dbName;
         Connection conn
                 = null;
         try {
@@ -83,6 +73,23 @@ public class Database {
         if (myObj.delete()) {
             return true;
         } else {
+            return false;
+        }
+    }
+
+    public boolean createContactsTable() {
+        String sql
+                = "CREATE TABLE IF NOT EXISTS contacts (name TEXT NOT NULL,\n"
+                + "phone_number INTEGER,\n"
+                + "PRIMARY KEY (name, phone_number));";
+
+        try {
+            Statement stmt
+                    = this.connection.createStatement();
+            stmt.execute(sql);
+            return true;
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
             return false;
         }
     }

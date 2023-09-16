@@ -123,10 +123,25 @@ public class MainScreen extends javax.swing.JFrame {
             while (myReader.hasNextLine()) {
                 String data
                         = myReader.nextLine();
-                LinkedList phoneCalls = getPhoneCalls(data);
+                LinkedList phoneCalls
+                        = getPhoneCalls(data);
             }
 
             myReader.close();
+
+            // now backup the calls
+            try {
+                database
+                        = new Database();
+                
+                
+                if (!this.database.createContactsTable()) {
+                    System.out.println("no! it wasn't created :(");
+                }
+            } catch (SQLException sqle) {
+                System.out.println("Error connecting to database!");
+            }
+
         }
     }//GEN-LAST:event_backupCallsButtonActionPerformed
 
@@ -137,21 +152,32 @@ public class MainScreen extends javax.swing.JFrame {
                 = obj.getJSONArray("listCallLogs");
         int n
                 = arr.length();
-        LinkedList<PhoneCall> phoneCalls = new LinkedList<PhoneCall>();
-        String textForOutput = "";
+        LinkedList<PhoneCall> phoneCalls
+                = new LinkedList<PhoneCall>();
+        String textForOutput
+                = "";
         for (int i
                 = 0;
                 i < n;
                 ++i) {
             final JSONObject d
                     = arr.getJSONObject(i);
-            String name = "";
+            String name
+                    = "";
             if (d.has("name")) { // some phone calls don't have a name
-                name = d.getString("name");
+                name
+                        = d.getString("name");
             }
-            PhoneCall phoneCall = new PhoneCall(name, d.getString("number"), d.getLong("date"), d.getInt("duration"));
+            PhoneCall phoneCall
+                    = new PhoneCall(name,
+                            d.getString("number"),
+                            d.getLong("date"),
+                            d.getInt("duration"));
             phoneCalls.add(phoneCall);
-            textForOutput += "Name: " + name + ", phone number: " + d.getString("number") + ", date: " + d.getLong("date") + ", duration: " + d.getInt("duration") + "\n\n";
+            textForOutput
+                    += "Name: " + name + ", phone number: " + d.getString(
+                            "number") + ", date: " + d.getLong("date") + ", duration: " + d.
+                    getInt("duration") + "\n\n";
         }
         outputTextArea.append(textForOutput);
         return phoneCalls;
@@ -171,6 +197,8 @@ public class MainScreen extends javax.swing.JFrame {
     /**
      * @param args the command line arguments
      */
+    public Database database;
+
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
@@ -209,15 +237,6 @@ public class MainScreen extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
-        
-        try {
-            Database database = new Database(); 
-        } catch (SQLException sqle) {
-            System.out.println("Error connecting to database!");
-        }
-        System.out.println("exiting...");
-        System.exit(1);
-        
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 MainScreen main
