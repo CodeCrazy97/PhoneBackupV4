@@ -125,77 +125,78 @@ public class MainScreen extends javax.swing.JFrame {
             LinkedList<Contact> contacts
                     = new LinkedList<Contact>();
 
-            // TODO: Need to get existing contacts in DB
             try {
                 database
                         = new Database();
-                contacts = Contact.getContacts(database);
-            } catch (SQLException sqle) {
-                System.exit(1);
-            }
-            
-            while (myReader.hasNextLine()) {
-                String data
-                        = myReader.nextLine();
-                //LinkedList phoneCalls = getPhoneCalls(data);
+                contacts
+                        = Contact.getContacts(database);
 
-                JSONObject obj
-                        = new JSONObject(data);
-                JSONArray arr
-                        = obj.getJSONArray("listCallLogs");
-                int n
-                        = arr.length();
-                String textForOutput
-                        = "";
-                for (int i
-                        = 0;
-                        i < n;
-                        ++i) {
-                    final JSONObject d
-                            = arr.getJSONObject(i);
-                    String name
+                while (myReader.hasNextLine()) {
+                    String data
+                            = myReader.nextLine();
+                    //LinkedList phoneCalls = getPhoneCalls(data);
+
+                    JSONObject obj
+                            = new JSONObject(data);
+                    JSONArray arr
+                            = obj.getJSONArray("listCallLogs");
+                    int n
+                            = arr.length();
+                    String textForOutput
                             = "";
-                    if (d.has("name")) { // some phone calls don't have a name
-                        name
-                                = d.getString("name");
-                    }
-                    
-                    Contact contact
-                            = new Contact(name,
-                                    d.getString("number"));
-                    PhoneCall phoneCall
-                            = new PhoneCall(name,
-                                    d.getString("number"),
-                                    d.getLong("date"),
-                                    d.getInt("duration"));
-                    
-                    if (!contactExists(contacts,
-                            contact)) {
-                        contacts.add(contact);
-                    }
-                    phoneCalls.add(phoneCall);
-                    
-                    textForOutput
-                            += "Name: " + name + ", phone number: " + d.
-                            getString(
-                                    "number") + ", date: " + d.getLong("date") + ", duration: " + d.
-                            getInt("duration") + "\n\n";
-                }
-                
-                outputTextArea.append(textForOutput);
-            }
-            
-            myReader.close();
+                    for (int i
+                            = 0;
+                            i < n;
+                            ++i) {
+                        final JSONObject d
+                                = arr.getJSONObject(i);
+                        String name
+                                = "";
+                        if (d.has("name")) { // some phone calls don't have a name
+                            name
+                                    = d.getString("name");
+                        }
 
-            // now backup the calls
-            if (database.backupContacts(contacts)) {
-                outputTextArea.append("Contacts backed up successfully.");
-            } else {
-                outputTextArea.append("Failed to backup contacts.");
+                        Contact contact
+                                = new Contact(name,
+                                        d.getString("number"));
+                        PhoneCall phoneCall
+                                = new PhoneCall(name,
+                                        d.getString("number"),
+                                        d.getLong("date"),
+                                        d.getInt("duration"));
+
+                        if (!contactExists(contacts,
+                                contact)) {
+                            contacts.add(contact);
+                        }
+                        phoneCalls.add(phoneCall);
+
+                        textForOutput
+                                += "Name: " + name + ", phone number: " + d.
+                                getString(
+                                        "number") + ", date: " + d.getLong(
+                                        "date") + ", duration: " + d.
+                                getInt("duration") + "\n\n";
+                    }
+
+                    outputTextArea.append(textForOutput);
+                }
+
+                myReader.close();
+
+                // now backup the calls
+                if (database.backupContacts(contacts)) {
+                    outputTextArea.append("Contacts backed up successfully.");
+                } else {
+                    outputTextArea.append("Failed to backup contacts.");
+                }
+            } catch (SQLException sqle) {
+                outputTextArea.append("Failed to backup contacts. Error: " + sqle.getMessage());
             }
         }
     }//GEN-LAST:event_backupCallsButtonActionPerformed
-    
+
     private String backupContacts(LinkedList<Contact> contacts) {
         if (database.backupContacts(contacts)) {
             return "Contacts successfully backed up!";
@@ -207,7 +208,7 @@ public class MainScreen extends javax.swing.JFrame {
     private void filePathTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_filePathTextFieldActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_filePathTextFieldActionPerformed
-    
+
     public boolean contactExists(LinkedList<Contact> contacts,
             Contact contact) {
         for (int i
@@ -224,7 +225,7 @@ public class MainScreen extends javax.swing.JFrame {
         }
         return false;
     }
-    
+
     public static String fixFilePath(String filePath) {
         filePath
                 = filePath.replaceAll("\"",
@@ -236,7 +237,7 @@ public class MainScreen extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public Database database;
-    
+
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
