@@ -24,7 +24,7 @@ public class Database {
                 = this.connect();
     }
 
-    private Connection connect() {
+    public Connection connect() {
         try {
             if (this.connection != null && !this.connection.isClosed()) {
                 return this.connection;

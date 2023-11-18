@@ -52,8 +52,5 @@ public class PhoneCall {
     
     public String getName() {
         return this.name;
-    }
-    
-    
-    
+    }    
 }

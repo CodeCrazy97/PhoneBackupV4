@@ -124,6 +124,16 @@ public class MainScreen extends javax.swing.JFrame {
                     = new LinkedList<PhoneCall>();
             LinkedList<Contact> contacts
                     = new LinkedList<Contact>();
+
+            // TODO: Need to get existing contacts in DB
+            try {
+                database
+                        = new Database();
+                contacts = Contact.getContacts(database);
+            } catch (SQLException sqle) {
+                System.exit(1);
+            }
+            
             while (myReader.hasNextLine()) {
                 String data
                         = myReader.nextLine();
@@ -149,7 +159,7 @@ public class MainScreen extends javax.swing.JFrame {
                         name
                                 = d.getString("name");
                     }
-
+                    
                     Contact contact
                             = new Contact(name,
                                     d.getString("number"));
@@ -158,41 +168,34 @@ public class MainScreen extends javax.swing.JFrame {
                                     d.getString("number"),
                                     d.getLong("date"),
                                     d.getInt("duration"));
-
+                    
                     if (!contactExists(contacts,
                             contact)) {
                         contacts.add(contact);
                     }
                     phoneCalls.add(phoneCall);
-
+                    
                     textForOutput
                             += "Name: " + name + ", phone number: " + d.
                             getString(
                                     "number") + ", date: " + d.getLong("date") + ", duration: " + d.
                             getInt("duration") + "\n\n";
                 }
-
+                
                 outputTextArea.append(textForOutput);
             }
-
+            
             myReader.close();
 
             // now backup the calls
-            try {
-                database
-                        = new Database();
-
-                if (database.backupContacts(contacts)) {
-                    outputTextArea.append("Contacts backed up successfully.");
-                } else {
-                    outputTextArea.append("Failed to backup contacts.");
-                }
-            } catch (SQLException sqle) {
-                System.out.println("Error connecting to database!");
+            if (database.backupContacts(contacts)) {
+                outputTextArea.append("Contacts backed up successfully.");
+            } else {
+                outputTextArea.append("Failed to backup contacts.");
             }
         }
     }//GEN-LAST:event_backupCallsButtonActionPerformed
-
+    
     private String backupContacts(LinkedList<Contact> contacts) {
         if (database.backupContacts(contacts)) {
             return "Contacts successfully backed up!";
@@ -204,20 +207,24 @@ public class MainScreen extends javax.swing.JFrame {
     private void filePathTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_filePathTextFieldActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_filePathTextFieldActionPerformed
-
+    
     public boolean contactExists(LinkedList<Contact> contacts,
             Contact contact) {
         for (int i
                 = 0;
                 i < contacts.size();
                 i++) {
-            if (contacts.get(i).getName().equals(contact.getName()) && contacts.get(i).getPhoneNumber().equals(contact.getPhoneNumber())) {
+            if (contacts.get(i).
+                    getName().
+                    equals(contact.getName()) && contacts.get(i).
+                    getPhoneNumber().
+                    equals(contact.getPhoneNumber())) {
                 return true;
             }
         }
         return false;
     }
-
+    
     public static String fixFilePath(String filePath) {
         filePath
                 = filePath.replaceAll("\"",
@@ -229,7 +236,7 @@ public class MainScreen extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public Database database;
-
+    
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
