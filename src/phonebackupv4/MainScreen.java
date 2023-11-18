@@ -120,11 +120,59 @@ public class MainScreen extends javax.swing.JFrame {
                                 null,
                                 ex);
             }
+            LinkedList<PhoneCall> phoneCalls
+                    = new LinkedList<PhoneCall>();
+            LinkedList<Contact> contacts
+                    = new LinkedList<Contact>();
             while (myReader.hasNextLine()) {
                 String data
                         = myReader.nextLine();
-                LinkedList phoneCalls
-                        = getPhoneCalls(data);
+                //LinkedList phoneCalls = getPhoneCalls(data);
+
+                JSONObject obj
+                        = new JSONObject(data);
+                JSONArray arr
+                        = obj.getJSONArray("listCallLogs");
+                int n
+                        = arr.length();
+                String textForOutput
+                        = "";
+                for (int i
+                        = 0;
+                        i < n;
+                        ++i) {
+                    final JSONObject d
+                            = arr.getJSONObject(i);
+                    String name
+                            = "";
+                    if (d.has("name")) { // some phone calls don't have a name
+                        name
+                                = d.getString("name");
+                    }
+
+                    Contact contact
+                            = new Contact(name,
+                                    d.getString("number"));
+                    PhoneCall phoneCall
+                            = new PhoneCall(name,
+                                    d.getString("number"),
+                                    d.getLong("date"),
+                                    d.getInt("duration"));
+
+                    if (!contactExists(contacts,
+                            contact)) {
+                        contacts.add(contact);
+                    }
+                    phoneCalls.add(phoneCall);
+
+                    textForOutput
+                            += "Name: " + name + ", phone number: " + d.
+                            getString(
+                                    "number") + ", date: " + d.getLong("date") + ", duration: " + d.
+                            getInt("duration") + "\n\n";
+                }
+
+                outputTextArea.append(textForOutput);
             }
 
             myReader.close();
@@ -133,59 +181,42 @@ public class MainScreen extends javax.swing.JFrame {
             try {
                 database
                         = new Database();
-                
-                
-                if (!this.database.createContactsTable()) {
-                    System.out.println("no! it wasn't created :(");
+
+                if (database.backupContacts(contacts)) {
+                    outputTextArea.append("Contacts backed up successfully.");
+                } else {
+                    outputTextArea.append("Failed to backup contacts.");
                 }
             } catch (SQLException sqle) {
                 System.out.println("Error connecting to database!");
             }
-
         }
     }//GEN-LAST:event_backupCallsButtonActionPerformed
 
-    private LinkedList<PhoneCall> getPhoneCalls(String callLog) {
-        JSONObject obj
-                = new JSONObject(callLog);
-        JSONArray arr
-                = obj.getJSONArray("listCallLogs");
-        int n
-                = arr.length();
-        LinkedList<PhoneCall> phoneCalls
-                = new LinkedList<PhoneCall>();
-        String textForOutput
-                = "";
-        for (int i
-                = 0;
-                i < n;
-                ++i) {
-            final JSONObject d
-                    = arr.getJSONObject(i);
-            String name
-                    = "";
-            if (d.has("name")) { // some phone calls don't have a name
-                name
-                        = d.getString("name");
-            }
-            PhoneCall phoneCall
-                    = new PhoneCall(name,
-                            d.getString("number"),
-                            d.getLong("date"),
-                            d.getInt("duration"));
-            phoneCalls.add(phoneCall);
-            textForOutput
-                    += "Name: " + name + ", phone number: " + d.getString(
-                            "number") + ", date: " + d.getLong("date") + ", duration: " + d.
-                    getInt("duration") + "\n\n";
+    private String backupContacts(LinkedList<Contact> contacts) {
+        if (database.backupContacts(contacts)) {
+            return "Contacts successfully backed up!";
+        } else {
+            return "There was an error backing up the contacts.";
         }
-        outputTextArea.append(textForOutput);
-        return phoneCalls;
     }
 
     private void filePathTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_filePathTextFieldActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_filePathTextFieldActionPerformed
+
+    public boolean contactExists(LinkedList<Contact> contacts,
+            Contact contact) {
+        for (int i
+                = 0;
+                i < contacts.size();
+                i++) {
+            if (contacts.get(i).getName().equals(contact.getName()) && contacts.get(i).getPhoneNumber().equals(contact.getPhoneNumber())) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     public static String fixFilePath(String filePath) {
         filePath
