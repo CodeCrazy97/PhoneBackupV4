@@ -1,5 +1,11 @@
 package phonebackupv4;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.LinkedList;
+
 /**
  *
  * @author Ethan
@@ -17,7 +23,7 @@ public class Contact {
         this.phoneNumber
                 = phoneNumber;
     }
-    
+
     public String getName() {
         return name;
     }
@@ -34,5 +40,30 @@ public class Contact {
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber
                 = phoneNumber;
+    }
+
+    
+    public static LinkedList<Contact> getContacts(Database database) throws SQLException {
+        LinkedList<Contact> contacts
+                = new LinkedList<Contact>();
+
+        String sql
+                = "SELECT * FROM contacts";
+
+        Connection conn
+                = database.connect();
+        Statement stmt
+                = conn.createStatement();
+        ResultSet rs
+                = stmt.executeQuery(sql);
+     
+        while (rs.next()) {
+            String name = rs.getString("name");
+            String phoneNumber = rs.getString("phone_number");
+            Contact contact = new Contact(name, phoneNumber);
+            contacts.add(contact);
+        }
+        
+        return contacts;
     }
 }

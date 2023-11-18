@@ -124,71 +124,75 @@ public class MainScreen extends javax.swing.JFrame {
                     = new LinkedList<PhoneCall>();
             LinkedList<Contact> contacts
                     = new LinkedList<Contact>();
-            while (myReader.hasNextLine()) {
-                String data
-                        = myReader.nextLine();
-                //LinkedList phoneCalls = getPhoneCalls(data);
 
-                JSONObject obj
-                        = new JSONObject(data);
-                JSONArray arr
-                        = obj.getJSONArray("listCallLogs");
-                int n
-                        = arr.length();
-                String textForOutput
-                        = "";
-                for (int i
-                        = 0;
-                        i < n;
-                        ++i) {
-                    final JSONObject d
-                            = arr.getJSONObject(i);
-                    String name
-                            = "";
-                    if (d.has("name")) { // some phone calls don't have a name
-                        name
-                                = d.getString("name");
-                    }
-
-                    Contact contact
-                            = new Contact(name,
-                                    d.getString("number"));
-                    PhoneCall phoneCall
-                            = new PhoneCall(name,
-                                    d.getString("number"),
-                                    d.getLong("date"),
-                                    d.getInt("duration"));
-
-                    if (!contactExists(contacts,
-                            contact)) {
-                        contacts.add(contact);
-                    }
-                    phoneCalls.add(phoneCall);
-
-                    textForOutput
-                            += "Name: " + name + ", phone number: " + d.
-                            getString(
-                                    "number") + ", date: " + d.getLong("date") + ", duration: " + d.
-                            getInt("duration") + "\n\n";
-                }
-
-                outputTextArea.append(textForOutput);
-            }
-
-            myReader.close();
-
-            // now backup the calls
             try {
                 database
                         = new Database();
+                contacts
+                        = Contact.getContacts(database);
 
+                while (myReader.hasNextLine()) {
+                    String data
+                            = myReader.nextLine();
+                    //LinkedList phoneCalls = getPhoneCalls(data);
+
+                    JSONObject obj
+                            = new JSONObject(data);
+                    JSONArray arr
+                            = obj.getJSONArray("listCallLogs");
+                    int n
+                            = arr.length();
+                    String textForOutput
+                            = "";
+                    for (int i
+                            = 0;
+                            i < n;
+                            ++i) {
+                        final JSONObject d
+                                = arr.getJSONObject(i);
+                        String name
+                                = "";
+                        if (d.has("name")) { // some phone calls don't have a name
+                            name
+                                    = d.getString("name");
+                        }
+
+                        Contact contact
+                                = new Contact(name,
+                                        d.getString("number"));
+                        PhoneCall phoneCall
+                                = new PhoneCall(name,
+                                        d.getString("number"),
+                                        d.getLong("date"),
+                                        d.getInt("duration"));
+
+                        if (!contactExists(contacts,
+                                contact)) {
+                            contacts.add(contact);
+                        }
+                        phoneCalls.add(phoneCall);
+
+                        textForOutput
+                                += "Name: " + name + ", phone number: " + d.
+                                getString(
+                                        "number") + ", date: " + d.getLong(
+                                        "date") + ", duration: " + d.
+                                getInt("duration") + "\n\n";
+                    }
+
+                    outputTextArea.append(textForOutput);
+                }
+
+                myReader.close();
+
+                // now backup the calls
                 if (database.backupContacts(contacts)) {
                     outputTextArea.append("Contacts backed up successfully.");
                 } else {
                     outputTextArea.append("Failed to backup contacts.");
                 }
             } catch (SQLException sqle) {
-                System.out.println("Error connecting to database!");
+                outputTextArea.append("Failed to backup contacts. Error: " + sqle.getMessage());
             }
         }
     }//GEN-LAST:event_backupCallsButtonActionPerformed
@@ -211,7 +215,11 @@ public class MainScreen extends javax.swing.JFrame {
                 = 0;
                 i < contacts.size();
                 i++) {
-            if (contacts.get(i).getName().equals(contact.getName()) && contacts.get(i).getPhoneNumber().equals(contact.getPhoneNumber())) {
+            if (contacts.get(i).
+                    getName().
+                    equals(contact.getName()) && contacts.get(i).
+                    getPhoneNumber().
+                    equals(contact.getPhoneNumber())) {
                 return true;
             }
         }
