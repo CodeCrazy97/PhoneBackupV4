@@ -167,7 +167,7 @@ public class MainScreen extends javax.swing.JFrame {
                                         d.getInt("duration"));
 
                         if (!contactExists(contacts,
-                                contact)) {
+                                contact) && !contact.getName().isEmpty()) {
                             contacts.add(contact);
                         }
                         phoneCalls.add(phoneCall);
